@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LushLife — Future Viridis City App</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030d14;--bg2:#061822;--card:rgba(0,210,160,0.05);--cardh:rgba(0,210,160,0.10);
+  --border:rgba(0,210,160,0.22);--borderb:rgba(76,177,255,0.30);
+  --green:#00DFA8;--green2:#00FF88;--blue:#4CB1FF;--blue2:#00D4FF;
+  --text:#D0F5E8;--textd:#5A9E88;--textm:#2E6050;
+  --warn:#FFB800;--danger:#FF4B6B;--gold:#FFD700;
+  --sw:230px;--hh:64px;
+}
+body{font-family:"Exo 2",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;background:radial-gradient(ellipse at 15% 20%,rgba(0,180,130,.09) 0%,transparent 50%),radial-gradient(ellipse at 85% 75%,rgba(76,177,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(0,80,60,.06) 0%,transparent 70%);animation:bgp 9s ease-in-out infinite alternate;pointer-events:none;z-index:0}
+@keyframes bgp{to{transform:scale(1.06) rotate(2deg)}}
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--hh);background:rgba(3,13,20,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;z-index:100}
+.hdr-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 0 18px rgba(0,220,170,.45)}
+.hdr-group{font-family:"Orbitron",monospace;font-size:9px;color:var(--green);letter-spacing:2.5px;display:block}
+.hdr-city{font-family:"Orbitron",monospace;font-size:17px;font-weight:700;background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block}
+.hdr-time{flex:1;text-align:center;font-family:"Orbitron",monospace;font-size:12px;color:var(--textd);letter-spacing:1px}
+.hdr-ctrl{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.psel{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-family:"Exo 2",sans-serif;font-size:13px;cursor:pointer;outline:none;max-width:215px}
+.btn-qr{background:var(--card);border:1px solid var(--borderb);color:var(--blue);padding:6px 13px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn-sos{background:linear-gradient(135deg,#FF4B6B,#E01040);border:none;color:white;padding:8px 15px;border-radius:8px;font-family:"Orbitron",monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;animation:sospulse 2s ease-in-out infinite;white-space:nowrap}
+@keyframes sospulse{0%,100%{box-shadow:0 0 10px rgba(255,75,107,.45)}50%{box-shadow:0 0 26px rgba(255,75,107,.9)}}
+.layout{display:flex;margin-top:var(--hh);min-height:calc(100vh - var(--hh));position:relative;z-index:1}
+.sidebar{width:var(--sw);position:fixed;top:var(--hh);left:0;bottom:0;background:rgba(3,13,20,.93);backdrop-filter:blur(20px);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;z-index:50}
+.sb-sec{padding:10px 16px 4px;font-size:9px;font-family:"Orbitron",monospace;color:var(--textm);letter-spacing:2.5px;text-transform:uppercase;margin-top:6px}
+.nav-i{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;color:var(--textd);border-left:3px solid transparent;transition:all .18s;user-select:none}
+.nav-i:hover{background:var(--cardh);color:var(--text);border-left-color:rgba(0,210,160,.5)}
+.nav-i.active{background:var(--card);color:var(--green);border-left-color:var(--green)}
+.nav-i .ic{width:18px;text-align:center;font-size:14px}
+.cw{margin:14px 12px;padding:14px 12px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.35);border-radius:12px;text-align:center}
+.cw-lbl{font-size:9px;font-family:"Orbitron",monospace;color:var(--gold);letter-spacing:2px}
+.cw-val{font-family:"Orbitron",monospace;font-size:26px;font-weight:700;color:var(--gold);text-shadow:0 0 12px rgba(255,215,0,.5);line-height:1.2}
+.cw-tr{font-size:11px;margin-top:3px}
+.cw-sc{font-size:11px;color:var(--textd);margin-top:4px}
+.main{margin-left:var(--sw);flex:1;padding:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;backdrop-filter:blur(10px);transition:all .18s}
+.card:hover{background:var(--cardh);border-color:rgba(0,210,160,.38)}
+.ctitle{font-family:"Orbitron",monospace;font-size:10px;color:var(--textd);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);flex-shrink:0}
+.dotb{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 7px var(--blue);flex-shrink:0}
+.dotg{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 7px var(--gold);flex-shrink:0}
+.dotd{width:6px;height:6px;border-radius:50%;background:var(--danger);box-shadow:0 0 7px var(--danger);flex-shrink:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center}
+.sv{font-family:"Orbitron",monospace;font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
+.sl{font-size:10px;color:var(--textd);text-transform:uppercase;letter-spacing:1px}
+.st{font-size:11px;margin-top:5px}
+.grn{color:var(--green)}.blu{color:var(--blue)}.gld{color:var(--gold)}.dng{color:var(--danger)}.wrn{color:var(--warn)}
+.phdr{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.ptitle{font-family:"Orbitron",monospace;font-size:17px;font-weight:700;background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.psub{font-size:12px;color:var(--textd);margin-top:3px}
+.ftabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.ftab{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--textd);font-size:12px;cursor:pointer;font-family:"Exo 2",sans-serif;transition:all .15s}
+.ftab.active,.ftab:hover{background:var(--green);border-color:var(--green);color:#000;font-weight:600}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.fi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px;text-align:center;transition:all .18s}
+.fi:hover{background:var(--cardh)}
+.fi.expired{border-color:rgba(255,75,107,.55);background:rgba(255,75,107,.08)}
+.fi.expiring{border-color:rgba(255,184,0,.55);background:rgba(255,184,0,.07)}
+.fi-ico{font-size:26px;margin-bottom:5px}
+.fi-name{font-size:12px;font-weight:600;margin-bottom:3px}
+.fi-exp{font-size:10px;color:var(--textd)}
+.fi-qty{font-size:10px;color:var(--textm);margin-top:2px}
+.fi-badge{font-size:9px;margin-top:5px;padding:2px 8px;border-radius:10px;display:inline-block;font-weight:600}
+.fi-badge.fresh{background:rgba(0,220,170,.18);color:var(--green)}
+.fi-badge.expiring{background:rgba(255,184,0,.18);color:var(--warn)}
+.fi-badge.expired{background:rgba(255,75,107,.18);color:var(--danger)}
+.cf{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:11px;margin-bottom:8px;transition:all .15s}
+.cf:hover{background:var(--cardh)}
+.cf-ico{font-size:24px;flex-shrink:0}
+.cf-info{flex:1}
+.cf-name{font-size:14px;font-weight:600}
+.cf-meta{font-size:11px;color:var(--textd);margin-top:2px}
+.cf-note{font-size:10px;color:var(--textm);margin-top:1px;font-style:italic}
+.btn-req{background:linear-gradient(135deg,var(--green),var(--blue));border:none;color:#000;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:"Exo 2",sans-serif;transition:opacity .15s;white-space:nowrap}
+.btn-req:hover{opacity:.85}
+.btn-req:disabled{background:#1a3a30;color:#3a6050;cursor:default}
+.wstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px}
+.wd{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
+.wd.today{border-color:var(--blue);box-shadow:0 0 14px rgba(76,177,255,.22)}
+.wd-date{font-size:10px;color:var(--textd);font-family:"Orbitron",monospace}
+.wd-ico{font-size:26px;margin:3px 0}
+.wd-temp{font-family:"Orbitron",monospace;font-size:16px;font-weight:700;color:var(--blue)}
+.wd-desc{font-size:10px;color:var(--textd)}
+.wd-rain{font-size:10px;color:var(--textm)}
+.drone-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(0,210,160,.08);font-size:13px;transition:background .15s}
+.drone-row:hover{background:var(--cardh)}
+.drone-id{font-family:"Orbitron",monospace;font-size:11px;color:var(--blue);width:72px;flex-shrink:0}
+.drone-loc{flex:1;color:var(--textd);font-size:12px}
+.drone-bat{width:52px;font-size:12px;text-align:right;flex-shrink:0}
+.drone-cargo{flex:1;font-size:12px;color:var(--textd)}
+.dstat{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;width:100px;justify-content:center;flex-shrink:0}
+.dstat.active{background:rgba(0,220,170,.15);color:var(--green)}
+.dstat.stuck{background:rgba(255,75,107,.18);color:var(--danger);animation:blink 1s infinite}
+.dstat.charging{background:rgba(255,184,0,.15);color:var(--warn)}
+.dstat.maintenance{background:rgba(76,177,255,.15);color:var(--blue)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.cmeter{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cm-lbl{width:110px;font-size:12px;color:var(--textd);flex-shrink:0}
+.cm-bar{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+.cm-fill{height:100%;border-radius:4px;transition:width .6s}
+.cm-val{width:50px;text-align:right;font-size:12px;font-family:"Orbitron",monospace;flex-shrink:0}
+.ce{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,210,160,.08);font-size:12px}
+.ce:last-child{border-bottom:none}
+.ce-amt{font-family:"Orbitron",monospace;font-size:13px;font-weight:700;width:48px;text-align:right;flex-shrink:0}
+.ce-amt.pos{color:var(--green)}.ce-amt.neg{color:var(--danger)}
+.ce-desc{flex:1;color:var(--textd)}
+.ce-date{font-size:10px;color:var(--textm);white-space:nowrap;flex-shrink:0}
+.alert{padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.al-d{background:rgba(255,75,107,.10);border:1px solid rgba(255,75,107,.30);color:var(--danger)}
+.al-w{background:rgba(255,184,0,.10);border:1px solid rgba(255,184,0,.30);color:var(--warn)}
+.al-s{background:rgba(0,220,170,.10);border:1px solid rgba(0,220,170,.30);color:var(--green)}
+.classif{display:inline-flex;align-items:center;gap:6px;background:rgba(255,75,107,.12);border:1px solid rgba(255,75,107,.4);color:var(--danger);padding:4px 12px;border-radius:4px;font-family:"Orbitron",monospace;font-size:9px;letter-spacing:2px}
+.dtbl{width:100%;border-collapse:collapse;font-size:13px}
+.dtbl th{font-family:"Orbitron",monospace;font-size:9px;letter-spacing:1px;color:var(--textd);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);text-transform:uppercase}
+.dtbl td{padding:9px 12px;border-bottom:1px solid rgba(0,210,160,.07)}
+.dtbl tr:hover td{background:var(--cardh)}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;margin:2px}
+.tg{background:rgba(0,220,170,.14);color:var(--green);border:1px solid rgba(0,220,170,.28)}
+.tb{background:rgba(76,177,255,.14);color:var(--blue);border:1px solid rgba(76,177,255,.28)}
+.tgd{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.28)}
+.td{background:rgba(255,75,107,.12);color:var(--danger);border:1px solid rgba(255,75,107,.28)}
+.tw{background:rgba(255,184,0,.12);color:var(--warn);border:1px solid rgba(255,184,0,.28)}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(0,210,160,.08);font-size:13px}
+.mrow:last-child{border-bottom:none}
+.mrow-lbl{color:var(--textd)}
+.mrow-val{font-family:"Orbitron",monospace;font-size:13px}
+.scroll{max-height:360px;overflow-y:auto}
+.sec{margin-bottom:22px}
+.pbar{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-top:5px}
+.pfill{height:100%;border-radius:3px;transition:width .5s}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:livep 1.5s infinite;display:inline-block}
+@keyframes livep{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+.chart-wrap{position:relative;height:220px}
+.chart-sm{position:relative;height:160px}
+.pcard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px 16px;margin-bottom:20px}
+.pav{font-size:36px;flex-shrink:0}
+.pname{font-family:"Orbitron",monospace;font-size:14px;font-weight:700}
+.prole{font-size:12px;color:var(--textd);margin-top:3px}
+.pbio{font-size:11px;color:var(--textm);margin-top:3px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:420px;width:92%}
+.modal-t{font-family:"Orbitron",monospace;font-size:15px;margin-bottom:14px}
+.modal-btns{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+.btn-sec{background:transparent;border:1px solid var(--border);color:var(--textd);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:"Exo 2",sans-serif}
+.btn-pri{background:linear-gradient(135deg,var(--green),var(--blue));border:none;color:#000;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:"Exo 2",sans-serif;font-weight:600}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--green)}
+@media(max-width:900px){:root{--sw:0px}.sidebar{display:none}.g3,.g4{grid-template-columns:1fr 1fr}.wstrip{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.g3,.g4,.g2,.g21{grid-template-columns:1fr}.wstrip{grid-template-columns:repeat(2,1fr)}.hdr-time{display:none}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-icon">&#x1F33F;</div>
+    <div>
+      <span class="hdr-group">Future Viridis:</span>
+      <span class="hdr-city">LUSHLIFE</span>
+    </div>
+  </div>
+  <div class="hdr-time" id="hdr-time"></div>
+  <div class="hdr-ctrl">
+    <span style="font-size:11px;color:var(--textd)">Viewing as:</span>
+    <select class="psel" id="psel" onchange="switchPersona(this.value)">
+      <optgroup label="— MAYOR —">
+        <option value="mayor">Mayor Elara Vance</option>
+      </optgroup>
+      <optgroup label="— CITIZENS —">
+        <option value="aria">Aria Chen — Teacher</option>
+        <option value="marcus">Marcus Rivera — Drone Tech</option>
+        <option value="zoe">Zoe Nakamura — Food Market</option>
+        <option value="liam">Liam Foster — Env. Scientist</option>
+        <option value="sofia">Sofia Patel — Energy Engineer</option>
+      </optgroup>
+      <optgroup label="— COMPANY HEADS —">
+        <option value="jordan">Jordan Blake — CEO, EcoTech</option>
+        <option value="morgan">Morgan Park — CEO, GreenFleet</option>
+        <option value="elena">Elena Voss — Director, AquaPure</option>
+      </optgroup>
+    </select>
+    <button class="btn-qr" onclick="showQR()">&#x1F4F1; QR Code</button>
+    <button class="btn-sos" onclick="showSOS()">&#x26A0; SOS — 119</button>
+  </div>
+</header>
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="main"></main>
+</div>
+<div id="mo-qr" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <div class="modal-t">&#x1F4F1; Mobile Access — LushLife</div>
+    <p style="font-size:13px;color:var(--textd)">Scan this QR code to access the LushLife City App on your personal device.</p>
+    <div id="qrcode" style="display:flex;justify-content:center;padding:16px;background:#fff;border-radius:10px;margin-top:14px"></div>
+    <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--textm)">mrshreyanshgarg.github.io/LushLife/</div>
+    <div class="modal-btns"><button class="btn-sec" onclick="document.getElementById('mo-qr').style.display='none'">Close</button></div>
+  </div>
+</div>
+<div id="mo-sos" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="border-color:rgba(255,75,107,.5)">
+    <div class="modal-t" style="color:var(--danger)">&#x1F6A8; LushLife Emergency Services</div>
+    <div style="font-size:52px;text-align:center;font-family:'Orbitron',monospace;color:var(--danger);margin:16px 0;text-shadow:0 0 24px rgba(255,75,107,.8)">119</div>
+    <p style="font-size:13px;color:var(--textd);text-align:center;line-height:1.7"><strong style="color:var(--text)">119</strong> is LushLife's emergency line — equivalent of 911.<br>Connects you immediately to police, fire, and medical response.</p>
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="document.getElementById('mo-sos').style.display='none'">Cancel</button>
+      <button style="background:linear-gradient(135deg,#FF4B6B,#C01030);border:none;color:white;padding:8px 22px;border-radius:8px;cursor:pointer;font-weight:700;font-family:'Exo 2',sans-serif;font-size:14px" onclick="alert('Connecting to LushLife Emergency Services — 119...')">CALL 119</button>
+    </div>
+  </div>
+</div>
+<div id="mo-req" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <div class="modal-t">Request from Community Fridge</div>
+    <p style="font-size:13px;color:var(--textd)" id="req-text"></p>
+    <p style="font-size:12px;color:var(--textm);margin-top:8px">Once confirmed, this item will be added to your fridge and the donor will be notified.</p>
+    <div class="modal-btns">
+      <button class="btn-sec" onclick="document.getElementById('mo-req').style.display='none'">Cancel</button>
+      <button class="btn-pri" onclick="confirmReq()">Confirm Request</button>
+    </div>
+  </div>
+</div>
+<script>
+
+function tick(){const n=new Date();n.setFullYear(n.getFullYear()+100);const d=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});const t=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const el=document.getElementById('hdr-time');if(el)el.textContent=d+'\u00a0\u00a0\u00b7\u00a0\u00a0'+t;}
+setInterval(tick,1000);tick();
+
+const cfData=[
+  {id:'cf1',name:'Apples',  donor:'Liam Foster',  qty:'6 pcs', expiry:'28 Apr',ico:'\ud83c\udf4e',note:'Freshly picked, organic',requested:false},
+  {id:'cf2',name:'Bread',   donor:'Zoe Nakamura', qty:'1 loaf',expiry:'26 Apr',ico:'\ud83c\udf5e',note:'Homemade sourdough',requested:false},
+  {id:'cf3',name:'Yogurt',  donor:'Sofia Patel',  qty:'2 cups',expiry:'27 Apr',ico:'\ud83c\udf76',note:'Plain oat yogurt',requested:false},
+  {id:'cf4',name:'Oranges', donor:'Aria Chen',    qty:'4 pcs', expiry:'1 May', ico:'\ud83c\udf4a',note:'Organic navel oranges',requested:false},
+  {id:'cf5',name:'Eggs',    donor:'Marcus Rivera',qty:'6 pcs', expiry:'3 May', ico:'\ud83e\udd5a',note:'Free-range, this week',requested:false},
+  {id:'cf6',name:'Hummus',  donor:'Jordan Blake', qty:'1 tub', expiry:'29 Apr',ico:'\ud83e\udeda',note:'Opened 2 days ago',requested:false},
+  {id:'cf7',name:'Pasta',   donor:'Morgan Park',  qty:'500 g', expiry:'20 Jul',ico:'\ud83c\udf5d',note:'Whole wheat, sealed',requested:false},
+  {id:'cf8',name:'Mango',   donor:'Elena Voss',   qty:'2 pcs', expiry:'27 Apr',ico:'\ud83e\udd6d',note:'Very ripe \u2014 use soon!',requested:false},
+];
+const WX=[
+  {date:'Today', ico:'\u2600\ufe0f',temp:'24\u00b0C',desc:'Clear Skies',    rain:'3%', aqi:'12 \u2014 Good',wind:'8 km/h', uv:'6 \u2014 High'},
+  {date:'SAT 26',ico:'\ud83c\udf24\ufe0f',temp:'22\u00b0C',desc:'Partly Cloudy',rain:'18%',aqi:'15 \u2014 Good',wind:'12 km/h',uv:'5 \u2014 Moderate'},
+  {date:'SUN 27',ico:'\ud83c\udf25\ufe0f',temp:'19\u00b0C',desc:'Overcast',   rain:'40%',aqi:'18 \u2014 Good',wind:'20 km/h',uv:'3 \u2014 Moderate'},
+  {date:'MON 28',ico:'\ud83c\udf27\ufe0f',temp:'17\u00b0C',desc:'Light Rain', rain:'75%',aqi:'22 \u2014 Good',wind:'25 km/h',uv:'2 \u2014 Low'},
+  {date:'TUE 29',ico:'\ud83c\udf26\ufe0f',temp:'18\u00b0C',desc:'Showers',   rain:'55%',aqi:'19 \u2014 Good',wind:'18 km/h',uv:'3 \u2014 Moderate'},
+  {date:'WED 30',ico:'\ud83c\udf24\ufe0f',temp:'21\u00b0C',desc:'Partly Cloudy',rain:'22%',aqi:'14 \u2014 Good',wind:'11 km/h',uv:'5 \u2014 Moderate'},
+  {date:'THU 1', ico:'\u2600\ufe0f',temp:'25\u00b0C',desc:'Sunny',          rain:'5%', aqi:'11 \u2014 Good',wind:'7 km/h', uv:'7 \u2014 High'},
+];
+const DRONES=[
+  {id:'DRN-041',loc:'Sector 3 \u2014 Elm Avenue',     status:'active',     bat:87, cargo:'Fresh produce \u2014 2.3 kg'},
+  {id:'DRN-017',loc:'Sector 7 \u2014 High Bridge',    status:'stuck',      bat:43, cargo:'Medical supplies \u2014 0.8 kg'},
+  {id:'DRN-093',loc:'Depot Bay \u2014 Charging Hub',  status:'charging',   bat:18, cargo:'Empty'},
+  {id:'DRN-052',loc:'Sector 1 \u2014 Market Square',  status:'active',     bat:72, cargo:'Restaurant order \u2014 1.6 kg'},
+  {id:'DRN-028',loc:'Maintenance Bay 2',             status:'maintenance',bat:100,cargo:'Scheduled service'},
+  {id:'DRN-066',loc:'Sector 5 \u2014 River Path',     status:'active',     bat:91, cargo:'Pharmacy parcel \u2014 0.5 kg'},
+  {id:'DRN-011',loc:'Sector 9 \u2014 North Tower',    status:'stuck',      bat:29, cargo:'Clothing parcel \u2014 1.1 kg'},
+  {id:'DRN-078',loc:'Depot Bay \u2014 Charging Hub',  status:'charging',   bat:55, cargo:'Empty'},
+  {id:'DRN-034',loc:'Sector 6 \u2014 School District',status:'active',     bat:64, cargo:'School supplies \u2014 3.0 kg'},
+];
+const FOODICO={'Almond Milk':'\ud83e\udd5b','Spinach':'\ud83e\udd6c','Tofu':'\ud83e\uddca','Avocado':'\ud83e\udd51','Oat Yogurt':'\ud83c\udf76','Salmon':'\ud83d\udc1f','Edamame':'\ud83e\uded3','Rice Milk':'\ud83e\udd5b','Quinoa':'\ud83c\udf3e','Berries':'\ud83e\uded0','Brown Rice':'\ud83c\udf5a','Kale':'\ud83e\udd6c','Blueberries':'\ud83e\uded0','Oat Milk':'\ud83e\udd5b','Lentils':'\ud83e\uddd8','Broccoli':'\ud83e\udd66','Bread':'\ud83c\udf5e','Eggs':'\ud83e\udd5a','Cheese':'\ud83e\uddc0','Tomatoes':'\ud83c\udf45','Carrots':'\ud83e\udd55','Peppers':'\ud83e\uded1','Mushrooms':'\ud83c\udf44','Garlic':'\ud83e\uddc4','Onions':'\ud83e\uddc5','Mango':'\ud83e\udd6d','Chickpeas':'\ud83e\uddd8','Oats':'\ud83c\udf3e','Apples':'\ud83c\udf4e','Yogurt':'\ud83c\udf76','Pasta':'\ud83c\udf5d','Hummus':'\ud83e\udeda'};
+const fi=n=>FOODICO[n]||'\ud83e\udd57';
+
+const P={
+ mayor:{id:'mayor',name:'Mayor Elara Vance',role:'mayor',title:'Mayor of LushLife',av:'\ud83d\udc69\u200d\ud83d\udcbc',classified:true,
+  tabs:['overview','citizens','companies','waste','carbon','drones','weather','community-fridge']},
+ aria:{id:'aria',name:'Aria Chen',role:'citizen',job:'Teacher',dept:'Education',av:'\ud83d\udc69\u200d\ud83c\udfeb',
+  bio:'Sustainability advocate and vegan educator at LushLife Academy.',
+  credits:1847,creditTrend:12,sus:87,co2:0.2,
+  co2b:{Transport:0.06,Home:0.03,Food:0.03,Shopping:0.06,Other:0.02},
+  foodPrefs:['Vegan','Gluten-free'],favFoods:['Avocado','Quinoa','Berries','Almond Milk'],
+  wP:{day:0.3,week:2.1,month:8.7,year:104,lifetime:2340},
+  wW:[0.3,0.2,0.4,0.3,0.2,0.4,0.3],
+  events:[{a:5,d:'Composted organic waste',dt:'Today'},{a:3,d:'Donated to community fridge',dt:'Today'},{a:10,d:'Zero single-use plastics \u2014 7 days',dt:'24 Apr'},{a:-8,d:'Food wastage detected in fridge',dt:'23 Apr'},{a:15,d:'Cycling to work \u2014 7 day streak',dt:'22 Apr'},{a:5,d:'Reduced water usage milestone',dt:'21 Apr'},{a:-3,d:'Non-recyclable packaging detected',dt:'20 Apr'}],
+  fridge:[{id:'f1',name:'Almond Milk',expiry:'26 Apr',qty:1,unit:'carton',status:'expiring'},{id:'f2',name:'Spinach',expiry:'24 Apr',qty:200,unit:'g',status:'expired'},{id:'f3',name:'Tofu',expiry:'2 May',qty:400,unit:'g',status:'fresh'},{id:'f4',name:'Avocado',expiry:'27 Apr',qty:2,unit:'pcs',status:'expiring'},{id:'f5',name:'Oat Yogurt',expiry:'10 May',qty:3,unit:'cups',status:'fresh'},{id:'f6',name:'Kale',expiry:'29 Apr',qty:150,unit:'g',status:'fresh'},{id:'f7',name:'Lentils',expiry:'1 Jun',qty:500,unit:'g',status:'fresh'},{id:'f8',name:'Blueberries',expiry:'25 Apr',qty:200,unit:'g',status:'expired'}],
+  tabs:['dashboard','fridge','community-fridge','waste','carbon','weather']},
+ marcus:{id:'marcus',name:'Marcus Rivera',role:'citizen',job:'Delivery Drone Technician',dept:'Drones & Logistics',av:'\ud83d\udc68\u200d\ud83d\udd27',
+  bio:"Keeps LushLife's drone fleet airborne. Pescatarian and amateur botanist.",
+  credits:2103,creditTrend:45,sus:91,co2:0.2,
+  co2b:{Transport:0.03,Home:0.03,Food:0.06,Shopping:0.03,Other:0.00},
+  foodPrefs:['Pescatarian'],favFoods:['Salmon','Brown Rice','Edamame','Mango'],
+  wP:{day:0.2,week:1.4,month:5.9,year:71,lifetime:1560},
+  wW:[0.2,0.1,0.3,0.2,0.1,0.3,0.2],
+  events:[{a:20,d:'Repaired 2 drones ahead of schedule',dt:'Today'},{a:10,d:'Zero waste month milestone',dt:'24 Apr'},{a:5,d:'Donated surplus food',dt:'23 Apr'},{a:15,d:'EV commute \u2014 30 day streak',dt:'21 Apr'},{a:-5,d:'Non-eco packaging material used',dt:'19 Apr'}],
+  fridge:[{id:'f1',name:'Salmon',expiry:'26 Apr',qty:300,unit:'g',status:'expiring'},{id:'f2',name:'Edamame',expiry:'15 May',qty:500,unit:'g',status:'fresh'},{id:'f3',name:'Rice Milk',expiry:'25 Apr',qty:1,unit:'carton',status:'expired'},{id:'f4',name:'Brown Rice',expiry:'1 Jul',qty:1,unit:'kg',status:'fresh'},{id:'f5',name:'Mango',expiry:'27 Apr',qty:2,unit:'pcs',status:'expiring'}],
+  tabs:['dashboard','fridge','community-fridge','waste','carbon','weather','drones']},
+ zoe:{id:'zoe',name:'Zoe Nakamura',role:'citizen',job:'Food Market Coordinator',dept:'Food & Agriculture',av:'\ud83d\udc69\u200d\ud83c\udf73',
+  bio:"Runs LushLife's central food market. Passionate about zero-waste cooking.",
+  credits:1695,creditTrend:-8,sus:74,co2:0.3,
+  co2b:{Transport:0.09,Home:0.06,Food:0.06,Shopping:0.03,Other:0.06},
+  foodPrefs:['Flexitarian','Local Produce Only'],favFoods:['Tomatoes','Garlic','Mushrooms','Bread'],
+  wP:{day:0.5,week:3.2,month:13.4,year:161,lifetime:3850},
+  wW:[0.5,0.6,0.4,0.5,0.7,0.4,0.5],
+  events:[{a:-8,d:'Excess food waste at market stall',dt:'Today'},{a:5,d:'Organised community harvest',dt:'24 Apr'},{a:-5,d:'Single-use bags at stall',dt:'23 Apr'},{a:10,d:'100 kg food saved from waste',dt:'21 Apr'},{a:3,d:'Community fridge contribution',dt:'20 Apr'}],
+  fridge:[{id:'f1',name:'Tomatoes',expiry:'26 Apr',qty:6,unit:'pcs',status:'expiring'},{id:'f2',name:'Mushrooms',expiry:'28 Apr',qty:300,unit:'g',status:'expiring'},{id:'f3',name:'Garlic',expiry:'1 Jun',qty:1,unit:'bulb',status:'fresh'},{id:'f4',name:'Bread',expiry:'24 Apr',qty:1,unit:'loaf',status:'expired'},{id:'f5',name:'Carrots',expiry:'5 May',qty:500,unit:'g',status:'fresh'},{id:'f6',name:'Onions',expiry:'20 May',qty:4,unit:'pcs',status:'fresh'}],
+  tabs:['dashboard','fridge','community-fridge','waste','carbon','weather','food-market']},
+ liam:{id:'liam',name:'Liam Foster',role:'citizen',job:'Environmental Scientist',dept:'Ecology & Research',av:'\ud83d\udc68\u200d\ud83d\udd2c',
+  bio:"Monitors LushLife's air, water, and soil quality. Vegan and urban farmer.",
+  credits:2241,creditTrend:33,sus:95,co2:0.1,
+  co2b:{Transport:0.03,Home:0.03,Food:0.01,Shopping:0.02,Other:0.01},
+  foodPrefs:['Vegan','Raw Food Advocate'],favFoods:['Chickpeas','Oats','Broccoli','Lentils'],
+  wP:{day:0.1,week:0.9,month:3.7,year:44,lifetime:980},
+  wW:[0.1,0.1,0.2,0.1,0.1,0.1,0.2],
+  events:[{a:15,d:'Published eco report \u2014 city-wide impact',dt:'Today'},{a:10,d:'Air quality improvement attributed',dt:'23 Apr'},{a:8,d:'Organic garden yield milestone',dt:'22 Apr'},{a:5,d:'Zero waste day achieved',dt:'21 Apr'},{a:10,d:'Community composting programme',dt:'19 Apr'}],
+  fridge:[{id:'f1',name:'Chickpeas',expiry:'15 Jun',qty:400,unit:'g',status:'fresh'},{id:'f2',name:'Broccoli',expiry:'27 Apr',qty:1,unit:'head',status:'expiring'},{id:'f3',name:'Oats',expiry:'1 Aug',qty:1,unit:'kg',status:'fresh'},{id:'f4',name:'Lentils',expiry:'1 Jul',qty:500,unit:'g',status:'fresh'},{id:'f5',name:'Apples',expiry:'29 Apr',qty:5,unit:'pcs',status:'fresh'}],
+  tabs:['dashboard','fridge','community-fridge','waste','carbon','weather','eco-data']},
+ sofia:{id:'sofia',name:'Sofia Patel',role:'citizen',job:'Renewable Energy Engineer',dept:'Energy & Infrastructure',av:'\ud83d\udc69\u200d\ud83d\udcbb',
+  bio:"Designs LushLife's solar grid and grid-scale battery storage systems.",
+  credits:1988,creditTrend:21,sus:89,co2:0.2,
+  co2b:{Transport:0.03,Home:0.03,Food:0.06,Shopping:0.03,Other:0.00},
+  foodPrefs:['Vegetarian','Low-Carbon Diet'],favFoods:['Eggs','Cheese','Peppers','Oat Milk'],
+  wP:{day:0.2,week:1.7,month:7.1,year:85,lifetime:1920},
+  wW:[0.2,0.2,0.3,0.2,0.2,0.2,0.4],
+  events:[{a:20,d:'Solar output record \u2014 city record',dt:'Today'},{a:10,d:'EV from renewables \u2014 30 days',dt:'24 Apr'},{a:5,d:'Home energy audit completed',dt:'22 Apr'},{a:-3,d:'High-usage appliance late night',dt:'20 Apr'},{a:8,d:'Donated excess solar credits',dt:'18 Apr'}],
+  fridge:[{id:'f1',name:'Eggs',expiry:'5 May',qty:12,unit:'pcs',status:'fresh'},{id:'f2',name:'Cheese',expiry:'8 May',qty:200,unit:'g',status:'fresh'},{id:'f3',name:'Oat Milk',expiry:'26 Apr',qty:1,unit:'carton',status:'expiring'},{id:'f4',name:'Peppers',expiry:'30 Apr',qty:3,unit:'pcs',status:'fresh'},{id:'f5',name:'Yogurt',expiry:'25 Apr',qty:2,unit:'cups',status:'expired'}],
+  tabs:['dashboard','fridge','community-fridge','waste','carbon','weather','energy-grid']},
+ jordan:{id:'jordan',name:'Jordan Blake',role:'ceo',company:'EcoTech Industries',av:'\ud83d\udc68\u200d\ud83d\udcbc',
+  bio:"CEO of LushLife's leading clean-tech company. 500 employees, net-zero since 2024.",
+  desc:'Smart city technology, AI monitoring, and air quality sensor networks.',
+  tabs:['company-overview','eco-metrics','carbon','waste','team'],
+  stats:{employees:500,co2:54,waste:630,recycling:94,renewable:99,sus:94,rating:'A+'},
+  co2b:{Operations:18,Logistics:14,Servers:10,Facilities:8,Other:4},
+  initiatives:[{n:'Zero Single-Use Plastic Policy',s:'active',since:'Jan 2024'},{n:'100% Renewable Energy Contract',s:'active',since:'Mar 2023'},{n:'Rooftop Solar Installation',s:'active',since:'Jun 2023'},{n:'Carbon Offset Programme',s:'active',since:'Sep 2022'},{n:'Electric Fleet Transition',s:'progress',since:'Feb 2025'},{n:'Supplier Sustainability Audit',s:'progress',since:'Jan 2025'}],
+  team:[{name:'Jamie Osei',role:'Head of Sustainability',sus:97,credits:2410},{name:'Riley Cho',role:'Environmental Lead',sus:92,credits:2105},{name:'Avery Singh',role:'Operations',sus:78,credits:1740},{name:'Casey Moore',role:'Logistics',sus:85,credits:1890},{name:'Taylor Kim',role:'R&D',sus:96,credits:2280}]},
+ morgan:{id:'morgan',name:'Morgan Park',role:'ceo',company:'GreenFleet Logistics',av:'\ud83d\udc69\u200d\u2708\ufe0f',
+  bio:"CEO of LushLife's drone and EV delivery logistics company. 320 employees.",
+  desc:'Eco-friendly last-mile delivery using drones, EVs, and cargo bikes.',
+  tabs:['company-overview','eco-metrics','carbon','waste','drones','team'],
+  stats:{employees:320,co2:29,waste:261,recycling:92,renewable:100,sus:97,rating:'A+'},
+  co2b:{Fleet:11,Operations:8,Facilities:5,Packaging:3,Other:2},
+  initiatives:[{n:'100% Electric Vehicle Fleet',s:'active',since:'Jul 2023'},{n:'Biodegradable Packaging Only',s:'active',since:'Jan 2024'},{n:'Drone Delivery Efficiency Programme',s:'active',since:'Mar 2024'},{n:'Cargo Bike Expansion',s:'progress',since:'Feb 2025'}],
+  team:[{name:'Quinn Hayes',role:'Fleet Manager',sus:94,credits:2190},{name:'Drew Patel',role:'Drone Ops',sus:91,credits:2040},{name:'Sam Leung',role:'Sustainability',sus:98,credits:2560},{name:'Jordan Wu',role:'Logistics',sus:82,credits:1830}]},
+ elena:{id:'elena',name:'Elena Voss',role:'ceo',company:'AquaPure Systems',av:'\ud83d\udc69\u200d\ud83d\udd2c',
+  bio:"Director of LushLife's water purification and ocean plastics recovery company.",
+  desc:'Water treatment, ocean plastic recovery, and sustainable materials processing.',
+  tabs:['company-overview','eco-metrics','carbon','waste','team'],
+  stats:{employees:210,co2:13,waste:93,recycling:99,renewable:97,sus:99,rating:'A+'},
+  co2b:{Treatment:4,Transport:4,Lab:2,Facilities:2,Other:1},
+  initiatives:[{n:'Zero Discharge Water Facility',s:'active',since:'2022'},{n:'Ocean Plastics Recovery Programme',s:'active',since:'2021'},{n:'Carbon-Neutral Lab Operations',s:'active',since:'2023'},{n:'Biogas from Waste Water',s:'progress',since:'2025'}],
+  team:[{name:'Ash Rivera',role:'Water Treatment Lead',sus:96,credits:2320},{name:'Blake Nair',role:'Ocean Programme',sus:99,credits:2640},{name:'Cameron Reed',role:'Lab Director',sus:93,credits:2180},{name:'Dana Fox',role:'Sustainability',sus:97,credits:2450}]},
+};
+const citizens=['aria','marcus','zoe','liam','sofia'].map(k=>P[k]);
+const S={persona:'mayor',tab:'overview',wf:'week',reqItem:null,charts:{}};
+Chart.defaults.color='#5A9E88';
+Chart.defaults.borderColor='rgba(0,210,160,0.12)';
+const COLORS=['#00DFA8','#4CB1FF','#FFD700','#FF4B6B','#FFB800','#00D4FF'];
+function dc(id){if(S.charts[id]){try{S.charts[id].destroy();}catch(e){}delete S.charts[id];}}
+function da(){Object.keys(S.charts).forEach(k=>{try{S.charts[k].destroy();}catch(e){}});S.charts={};}
+function switchPersona(id){da();S.persona=id;const p=P[id];const m={mayor:'overview',citizen:'dashboard',ceo:'company-overview'};S.tab=m[p.role]||'overview';renderSidebar();renderMain();}
+function switchTab(t){da();S.tab=t;renderMain();document.querySelectorAll('.nav-i').forEach(el=>el.classList.toggle('active',el.dataset.tab===t));}
+
+function renderSidebar(){
+  const p=P[S.persona];
+  const TABS={overview:{i:'\ud83c\udfd9',l:'City Overview'},citizens:{i:'\ud83d\udc65',l:'All Citizens'},companies:{i:'\ud83c\udfe2',l:'Companies'},dashboard:{i:'\ud83c\udfe0',l:'My Dashboard'},fridge:{i:'\ud83e\uddca',l:'My Fridge'},'community-fridge':{i:'\ud83e\udd1d',l:'Community Fridge'},waste:{i:'\u267b',l:'Waste Tracker'},carbon:{i:'\ud83c\udf0d',l:'Carbon Footprint'},weather:{i:'\u26c5',l:'Weather Forecast'},drones:{i:'\ud83d\ude81',l:'Drone Fleet'},'food-market':{i:'\ud83d\uded2',l:'Food Market Data'},'eco-data':{i:'\ud83d\udd2c',l:'Eco Data'},'energy-grid':{i:'\u26a1',l:'Energy Grid'},'company-overview':{i:'\ud83d\udcca',l:'Company Overview'},'eco-metrics':{i:'\ud83c\udf31',l:'Eco Metrics'},team:{i:'\ud83d\udc77',l:'Team Sustainability'}};
+  let h='';
+  if(p.role==='citizen'){const up=p.creditTrend>=0;h+=`<div class="cw"><div class="cw-lbl">SUSTAINABILITY CREDITS</div><div class="cw-val">${p.credits.toLocaleString()}</div><div class="cw-tr ${up?'grn':'dng'}">${up?'\u25b2 +':'\u25bc '}${Math.abs(p.creditTrend)} this week</div><div class="cw-sc">Score: <strong class="grn">${p.sus}/100</strong></div></div>`;}
+  h+=`<div class="sb-sec">Navigation</div>`;
+  p.tabs.forEach(t=>{const def=TABS[t]||{i:'\u2022',l:t};h+=`<div class="nav-i${S.tab===t?' active':''}" data-tab="${t}" onclick="switchTab('${t}')"><span class="ic">${def.i}</span>${def.l}</div>`;});
+  if(p.classified)h+=`<div style="margin:16px 12px"><div class="classif">\ud83d\udd12 CLASSIFIED \u2014 MAYOR ONLY</div></div>`;
+  document.getElementById('sidebar').innerHTML=h;
+}
+function renderMain(){const p=P[S.persona];if(p.role==='mayor')renderMayor(S.tab);else if(p.role==='citizen')renderCitizen(p,S.tab);else renderCEO(p,S.tab);}
+
+function secWeather(){
+  const rows=WX.map((w,i)=>`<div class="wd${i===0?' today':''}"><div class="wd-date">${w.date}</div><div class="wd-ico">${w.ico}</div><div class="wd-temp">${w.temp}</div><div class="wd-desc">${w.desc}</div><div class="wd-rain">Rain: ${w.rain}</div><div class="wd-rain">Wind: ${w.wind}</div></div>`).join('');
+  return `<div class="phdr"><div><div class="ptitle">Weather Forecast \u2014 LushLife</div><div class="psub">AI-powered 7-day climate intelligence forecast</div></div></div>
+  <div class="wstrip sec">${rows}</div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Air Quality &amp; UV Index</div>
+    ${WX.map(w=>`<div class="mrow"><span class="mrow-lbl">${w.date}</span><span style="display:flex;gap:16px"><span class="mrow-val grn">${w.aqi}</span><span class="mrow-val wrn">UV: ${w.uv}</span></span></div>`).join('')}
+    </div>
+    <div class="card"><div class="ctitle"><span class="dot"></span>Climate AI Advisory</div>
+    <div class="alert al-s"><span>\u2600\ufe0f</span>Today: Ideal for cycling and outdoor activity. Solar generation at peak capacity.</div>
+    <div class="alert al-w"><span>\ud83c\udf27\ufe0f</span>Mon\u2013Tue: Rain expected. Delay outdoor waste collections and drone flights where possible.</div>
+    <div class="alert al-s"><span>\u26a1</span>Solar Output: High today and Thursday. Battery reserves recommended Mon\u2013Tue.</div>
+    <div class="alert al-s"><span>\ud83d\udeb2</span>Cycling conditions: Excellent today and Thursday. Encourage active commuting.</div>
+    </div>
+  </div>`;
+}
+
+function secCommunityFridge(pid){
+  const rows=cfData.map(item=>{
+    const myDonation=pid&&P[pid]&&item.donor===P[pid].name;
+    const tag=myDonation?`<span class="tag tgd">Your Donation</span>`:'';
+    const dis=item.requested?'disabled':'';
+    const btn=item.requested?'Requested \u2713':'Request';
+    return `<div class="cf"><div class="cf-ico">${item.ico}</div><div class="cf-info"><div class="cf-name">${item.name} ${tag}</div><div class="cf-meta">From: ${item.donor} \u00b7 Qty: ${item.qty} \u00b7 Expires: ${item.expiry}</div><div class="cf-note">${item.note}</div></div><button class="btn-req" ${dis} onclick="openReq('${item.id}','${item.name}','${item.donor}','${item.qty}','${item.expiry}')">${btn}</button></div>`;
+  }).join('');
+  return `<div class="phdr"><div><div class="ptitle">Community Fridge</div><div class="psub">Items neighbours are offering \u2014 request to add to your fridge</div></div></div>
+  <div class="alert al-s sec"><span>\ud83e\udd1d</span>${cfData.filter(x=>!x.requested).length} items currently available in the LushLife community fridge.</div>
+  <div class="scroll">${rows}</div>`;
+}
+
+function secDrones(){
+  const si={active:'\ud83d\udfe2',stuck:'\ud83d\udd34',charging:'\ud83d\udfe1',maintenance:'\ud83d\udd35'};
+  const rows=DRONES.map(d=>{const bc=d.bat>=60?'grn':d.bat>=30?'wrn':'dng';return `<div class="drone-row"><div class="drone-id">${d.id}</div><div class="drone-loc">${d.loc}</div><div class="drone-cargo">${d.cargo}</div><div class="drone-bat ${bc}">${d.bat}%</div><div class="dstat ${d.status}">${si[d.status]} ${d.status.toUpperCase()}</div></div>`;}).join('');
+  const stuck=DRONES.filter(d=>d.status==='stuck');
+  const alerts=stuck.map(d=>`<div class="alert al-d"><span>\ud83d\udea8</span><strong>${d.id}</strong> requires assistance at ${d.loc} \u2014 Battery: ${d.bat}%</div>`).join('');
+  return `<div class="phdr"><div><div class="ptitle">Drone Fleet Monitor</div><div class="psub"><span class="ldot"></span> Live airspace status \u2014 LushLife</div></div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">${DRONES.filter(d=>d.status==='active').length}</div><div class="sl">Active</div></div>
+    <div class="stat"><div class="sv dng">${DRONES.filter(d=>d.status==='stuck').length}</div><div class="sl">Need Help</div></div>
+    <div class="stat"><div class="sv wrn">${DRONES.filter(d=>d.status==='charging').length}</div><div class="sl">Charging</div></div>
+    <div class="stat"><div class="sv blu">${DRONES.filter(d=>d.status==='maintenance').length}</div><div class="sl">Maintenance</div></div>
+  </div>
+  ${stuck.length?`<div class="sec">${alerts}</div>`:''}
+  <div class="card sec"><div class="ctitle"><span class="dot"></span>All Drones</div>
+  <div style="display:flex;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:9px;color:var(--textm);font-family:'Orbitron',monospace;letter-spacing:1px"><div style="width:72px">ID</div><div style="flex:1">LOCATION</div><div style="flex:1">CARGO</div><div style="width:52px;text-align:right">BAT</div><div style="width:100px;text-align:center">STATUS</div></div>
+  ${rows}</div>`;
+}
+
+function secWaste(p){
+  const wf=S.wf||'week';
+  const LABELS={day:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],week:['Week 1','Week 2','Week 3','Week 4'],month:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],year:['2020','2021','2022','2023','2024','2025'],lifetime:['2050','2063','2076','2089','2100','2110','2118','2122','2126']};
+  const getData=()=>{
+    if(!p) return {day:[1.2,0.9,1.4,1.1,1.3,1.5,1.2],week:[8.7,7.9,9.2,8.1],month:[72,68,81,74,69,78,83,77,71,75,80,73],year:[380,360,390,340,310,290],lifetime:[450,480,510,520,490,430,380,340,310]};
+    const b=p.wP;
+    return {day:p.wW,week:[b.week,b.week*0.92,b.week*1.08,b.week*0.97],month:Array.from({length:12},(_,i)=>+(b.month*(0.9+Math.random()*0.2)).toFixed(1)),year:[b.year*1.3,b.year*1.2,b.year*1.1,b.year*1.05,b.year*1.02,b.year].map(v=>+v.toFixed(0)),lifetime:[b.lifetime*1.5,b.lifetime*1.4,b.lifetime*1.3,b.lifetime*1.2,b.lifetime*1.1,b.lifetime*1.05,b.lifetime*1.02,b.lifetime*1.01,b.lifetime].map(v=>+v.toFixed(0))};
+  };
+  const data=getData();
+  const cur=p?p.wP[wf]:data[wf].reduce((a,b)=>a+b,0);
+  const unit=wf==='lifetime'?'kg':wf==='year'?'kg':'kg';
+  const tabs=['day','week','month','year','lifetime'].map(t=>`<button class="ftab${wf===t?' active':''}" onclick="S.wf='${t}';da();renderMain()">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('');
+  const lm={day:['Today','This Week','This Month'],week:['Today','This Week','This Month'],month:['Today','This Month','This Year'],year:['Today','This Year','Lifetime Total'],lifetime:['This Week','This Year','Lifetime Total']};
+  const vm={day:[p?p.wP.day:0.4,p?p.wP.week:8.7,p?p.wP.month:74],week:[p?p.wP.day:0.4,p?p.wP.week:8.7,p?p.wP.month:74],month:[p?p.wP.day:0.4,p?p.wP.month:74,p?p.wP.year:310],year:[p?p.wP.day:0.4,p?p.wP.year:310,p?p.wP.lifetime:2340],lifetime:[p?p.wP.week:8.7,p?p.wP.year:310,p?p.wP.lifetime:2340]};
+  const [l1,l2,l3]=lm[wf];const [v1,v2,v3]=vm[wf];
+  return `<div class="phdr"><div><div class="ptitle">Waste Tracker</div><div class="psub">${p?p.name+"'s waste production over time":'City-wide waste production'}</div></div></div>
+  <div class="ftabs sec">${tabs}</div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv grn">${v1}<span style="font-size:14px"> kg</span></div><div class="sl">${l1}</div></div>
+    <div class="stat"><div class="sv blu">${v2}<span style="font-size:14px"> kg</span></div><div class="sl">${l2}</div></div>
+    <div class="stat"><div class="sv gld">${v3}<span style="font-size:14px"> kg</span></div><div class="sl">${l3}</div></div>
+  </div>
+  <div class="card sec"><div class="ctitle"><span class="dot"></span>Waste Production \u2014 ${wf.charAt(0).toUpperCase()+wf.slice(1)}</div>
+  <div class="chart-wrap"><canvas id="ch-waste"></canvas></div></div>`;
+}
+
+function secCarbon(p,co2b,label){
+  const maxCo2=0.5;
+  const total=p?p.co2:1.8;
+  const breakdown=co2b||{Transport:0.5,Home:0.4,Food:0.3,Shopping:0.4,Other:0.2};
+  const meters=Object.entries(breakdown).map(([k,v])=>{const pct=Math.round(v/total*100);const col=pct>35?'var(--danger)':pct>25?'var(--warn)':'var(--green)';return `<div class="cmeter"><div class="cm-lbl">${k}</div><div class="cm-bar"><div class="cm-fill" style="width:${pct}%;background:${col}"></div></div><div class="cm-val" style="color:${col}">${v}t</div></div>`;}).join('');
+  const barW=Math.round(total/maxCo2*100);const barCol=total<0.2?'var(--green)':total<0.35?'var(--warn)':'var(--danger)';
+  return `<div class="phdr"><div><div class="ptitle">Carbon Footprint</div><div class="psub">${label||'Annual CO\u2082 emissions analysis'}</div></div></div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv ${total<2?'grn':'wrn'}">${total}<span style="font-size:14px">t</span></div><div class="sl">Annual CO\u2082</div><div class="st grn">\u25bc -0.3t vs last year</div></div>
+    <div class="stat"><div class="sv blu">0.2<span style="font-size:14px">t</span></div><div class="sl">City Average</div><div class="st" style="color:var(--textd)">LushLife 2126 baseline</div></div>
+    <div class="stat"><div class="sv wrn">0.4<span style="font-size:14px">t</span></div><div class="sl">World Avg 2126</div><div class="st grn">You are ${Math.round((1-total/0.4)*100)}% below</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>CO\u2082 Breakdown by Category</div>${meters}</div>
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Footprint vs Benchmarks</div>
+      <div class="cmeter"><div class="cm-lbl">${p?p.name.split(' ')[0]:'You'}</div><div class="cm-bar"><div class="cm-fill" style="width:${barW}%;background:${barCol}"></div></div><div class="cm-val" style="color:${barCol}">${total}t</div></div>
+      <div class="cmeter"><div class="cm-lbl">City Avg</div><div class="cm-bar"><div class="cm-fill" style="width:70%;background:var(--warn)"></div></div><div class="cm-val blu">0.2t</div></div>
+      <div class="cmeter"><div class="cm-lbl">World Avg 2126</div><div class="cm-bar"><div class="cm-fill" style="width:80%;background:var(--warn)"></div></div><div class="cm-val wrn">0.4t</div></div>
+      <div class="chart-sm" style="margin-top:16px"><canvas id="ch-co2pie"></canvas></div>
+    </div>
+  </div>`;
+}
+
+// MAYOR VIEWS
+function renderMayor(t){
+  const fns={overview:mayorOverview,citizens:mayorCitizens,companies:mayorCompanies,waste:()=>document.getElementById('main').innerHTML=secWaste(null),carbon:()=>{document.getElementById('main').innerHTML=secCarbon(null,{Transport:180,Industry:320,Energy:410,Buildings:290,Agriculture:150,Waste:80},'City of LushLife \u2014 Annual CO\u2082 Emissions');setTimeout(()=>buildCarbonCharts(null,{Transport:180,Industry:320,Energy:410,Buildings:290,Agriculture:150,Waste:80}),50);},drones:()=>document.getElementById('main').innerHTML=secDrones(),weather:()=>document.getElementById('main').innerHTML=secWeather(),'community-fridge':()=>document.getElementById('main').innerHTML=secCommunityFridge('mayor')};
+  const fn=fns[t]||mayorOverview;fn();
+  if(t==='waste')setTimeout(()=>buildWasteChart(null),50);
+}
+
+function mayorOverview(){
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">City Overview \u2014 LushLife</div><div class="psub">All city metrics \u2014 live dashboard</div></div><div class="classif">\ud83d\udd12 CLASSIFIED</div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">98<span style="font-size:14px">%</span></div><div class="sl">Renewable Energy</div><div class="st grn">\u25b2 +2% this month</div></div>
+    <div class="stat"><div class="sv blu">12,847</div><div class="sl">Total Citizens</div><div class="st" style="color:var(--textd)">+124 this year</div></div>
+    <div class="stat"><div class="sv gld">8,241</div><div class="sl">Avg. Credits</div><div class="st grn">\u25b2 +3.2% vs last month</div></div>
+    <div class="stat"><div class="sv" style="color:#00D4FF">A+</div><div class="sl">City Eco Rating</div><div class="st grn">Best in region</div></div>
+  </div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv grn">94<span style="font-size:14px">%</span></div><div class="sl">Recycling Rate</div><div class="pbar"><div class="pfill" style="width:94%;background:linear-gradient(90deg,var(--green),var(--green2))"></div></div></div>
+    <div class="stat"><div class="sv grn">0.2<span style="font-size:14px">t</span></div><div class="sl">Avg CO\u2082/Citizen/yr</div><div class="st grn">\u25bc -0.3t vs last year</div></div>
+    <div class="stat"><div class="sv dng">2</div><div class="sl">Drones Needing Help</div><div class="st dng">DRN-017 \u00b7 DRN-011</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>City Waste This Month (tonnes)</div><div class="chart-wrap"><canvas id="ch-city-waste"></canvas></div></div>
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Sustainability Credits Distribution</div><div class="chart-wrap"><canvas id="ch-credits-dist"></canvas></div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dotd"></span>Active Alerts</div>
+      <div class="alert al-d"><span>\ud83d\ude81</span>DRN-017 stuck at Sector 7 \u2014 High Bridge. Battery 43%. Cargo: Medical supplies.</div>
+      <div class="alert al-d"><span>\ud83d\ude81</span>DRN-011 stuck at Sector 9 \u2014 North Tower. Battery 29%. Cargo: Clothing parcel.</div>
+      <div class="alert al-w"><span>\ud83c\udf27\ufe0f</span>Weather alert: Heavy rain forecast for Monday. Consider drone flight suspensions.</div>
+      <div class="alert al-s"><span>\u26a1</span>Solar generation at 112% of target today. Excess stored in city battery reserves.</div>
+    </div>
+    <div class="card"><div class="ctitle"><span class="dot"></span>Top Sustainability Performers</div>
+      ${citizens.sort((a,b)=>b.sus-a.sus).slice(0,5).map(c=>`<div class="mrow"><span>${c.av} ${c.name}</span><span class="mrow-val grn">${c.sus}/100</span></div>`).join('')}
+    </div>
+  </div>`;
+  setTimeout(()=>{
+    const wCtx=document.getElementById('ch-city-waste').getContext('2d');
+    S.charts['city-waste']=new Chart(wCtx,{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{label:'Waste (t)',data:[45,42,48,44,40,43,47,41,40,43,45,42],backgroundColor:'rgba(0,223,168,0.6)',borderColor:'#00DFA8',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{stepSize:20}}},plugins:{legend:{display:false}}}});
+    const cCtx=document.getElementById('ch-credits-dist').getContext('2d');
+    S.charts['credits-dist']=new Chart(cCtx,{type:'doughnut',data:{labels:['1500-2000','2000-2500','2500+','Under 1500'],datasets:[{data:[35,42,18,5],backgroundColor:['#00DFA8','#4CB1FF','#FFD700','#FF4B6B'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  },50);
+}
+
+function mayorCitizens(){
+  const rows=citizens.map(c=>`<tr><td>${c.av} <strong>${c.name}</strong></td><td><span class="tag tg">${c.job}</span></td><td class="grn">${c.credits.toLocaleString()}</td><td><span class="${c.creditTrend>=0?'grn':'dng'}">${c.creditTrend>=0?'+':''}${c.creditTrend}</span></td><td><span style="color:${c.sus>=90?'var(--green)':c.sus>=75?'var(--warn)':'var(--danger)'}">${c.sus}/100</span></td><td class="wrn">${c.co2}t</td><td>${c.foodPrefs.map(f=>`<span class="tag tg">${f}</span>`).join('')}</td></tr>`).join('');
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">All Citizens</div><div class="psub">Complete citizen registry \u2014 sustainability overview</div></div><div class="classif">\ud83d\udd12 CLASSIFIED</div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv blu">5</div><div class="sl">Active Profiles</div></div>
+    <div class="stat"><div class="sv grn">${Math.round(citizens.reduce((a,c)=>a+c.sus,0)/citizens.length)}/100</div><div class="sl">Avg Sus. Score</div></div>
+    <div class="stat"><div class="sv gld">${Math.round(citizens.reduce((a,c)=>a+c.credits,0)/citizens.length).toLocaleString()}</div><div class="sl">Avg Credits</div></div>
+    <div class="stat"><div class="sv wrn">${(citizens.reduce((a,c)=>a+c.co2,0)/citizens.length).toFixed(1)}t</div><div class="sl">Avg CO\u2082</div></div>
+  </div>
+  <div class="card sec"><div class="ctitle"><span class="dot"></span>Citizen Directory</div>
+  <div class="scroll"><table class="dtbl"><thead><tr><th>Name</th><th>Role</th><th>Credits</th><th>Trend</th><th>Sus. Score</th><th>CO\u2082/yr</th><th>Diet</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+  <div class="card"><div class="ctitle"><span class="dotb"></span>Food Preferences Overview</div>
+  <div class="g3">${citizens.map(c=>`<div style="padding:10px"><div style="font-weight:600;margin-bottom:6px">${c.av} ${c.name.split(' ')[0]}</div>${c.foodPrefs.map(f=>`<span class="tag tg">${f}</span>`).join('')}<br><div style="font-size:11px;color:var(--textm);margin-top:6px">Fav: ${c.favFoods.join(', ')}</div></div>`).join('')}</div></div>`;
+}
+
+function mayorCompanies(){
+  const cos=[P.jordan,P.morgan,P.elena];
+  const cards=cos.map(c=>`<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="font-size:28px">${c.av}</div><div><div class="pname">${c.name}</div><div class="prole">${c.company}</div></div><span class="tag tg" style="margin-left:auto">${c.stats.rating}</span></div>
+  <div class="mrow"><span class="mrow-lbl">Employees</span><span class="mrow-val blu">${c.stats.employees}</span></div>
+  <div class="mrow"><span class="mrow-lbl">CO\u2082 / year</span><span class="mrow-val wrn">${c.stats.co2}t</span></div>
+  <div class="mrow"><span class="mrow-lbl">Recycling Rate</span><span class="mrow-val grn">${c.stats.recycling}%</span></div>
+  <div class="mrow"><span class="mrow-lbl">Renewable Energy</span><span class="mrow-val grn">${c.stats.renewable}%</span></div>
+  <div class="mrow"><span class="mrow-lbl">Sus. Score</span><span class="mrow-val grn">${c.stats.sus}/100</span></div>
+  </div>`).join('');
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Companies \u2014 LushLife</div><div class="psub">Eco performance for all registered companies</div></div><div class="classif">\ud83d\udd12 CLASSIFIED</div></div>
+  <div class="g3 sec">${cards}</div>
+  <div class="card"><div class="ctitle"><span class="dot"></span>Combined Company Carbon Footprint</div>
+  <div class="chart-wrap"><canvas id="ch-co-carbon"></canvas></div></div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('ch-co-carbon').getContext('2d');
+    S.charts['co-carbon']=new Chart(ctx,{type:'bar',data:{labels:cos.map(c=>c.company),datasets:[{label:'CO\u2082 tonnes/year',data:cos.map(c=>c.stats.co2),backgroundColor:['rgba(0,223,168,0.7)','rgba(76,177,255,0.7)','rgba(255,215,0,0.7)'],borderColor:['#00DFA8','#4CB1FF','#FFD700'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  },50);
+}
+
+// CITIZEN VIEWS
+function renderCitizen(p,t){
+  const fns={
+    dashboard:()=>citizenDashboard(p),
+    fridge:()=>citizenFridge(p),
+    'community-fridge':()=>{document.getElementById('main').innerHTML=secCommunityFridge(p.id);},
+    waste:()=>{document.getElementById('main').innerHTML=secWaste(p);setTimeout(()=>buildWasteChart(p),50);},
+    carbon:()=>{document.getElementById('main').innerHTML=secCarbon(p,p.co2b,`${p.name} \u2014 Annual CO\u2082`);setTimeout(()=>buildCarbonCharts(p,p.co2b),50);},
+    weather:()=>{document.getElementById('main').innerHTML=secWeather();},
+    drones:()=>{document.getElementById('main').innerHTML=secDrones();},
+    'food-market':()=>foodMarket(p),
+    'eco-data':()=>ecoData(p),
+    'energy-grid':()=>energyGrid(p),
+  };
+  (fns[t]||fns.dashboard)();
+}
+
+function citizenDashboard(p){
+  const expiring=p.fridge.filter(f=>f.status==='expiring');
+  const expired=p.fridge.filter(f=>f.status==='expired');
+  const tr=p.creditTrend>=0;
+  document.getElementById('main').innerHTML=`
+  <div class="pcard"><div class="pav">${p.av}</div><div><div class="pname">${p.name}</div><div class="prole">${p.job} \u2014 ${p.dept}</div><div class="pbio">${p.bio}</div></div>
+  <div style="margin-left:auto;text-align:right"><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold)">CREDITS</div><div style="font-family:'Orbitron',monospace;font-size:28px;color:var(--gold)">${p.credits.toLocaleString()}</div><div class="${tr?'grn':'dng'}" style="font-size:11px">${tr?'\u25b2 +':'\u25bc '}${Math.abs(p.creditTrend)} this week</div></div>
+  </div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">${p.sus}/100</div><div class="sl">Sus. Score</div></div>
+    <div class="stat"><div class="sv wrn">${p.co2}<span style="font-size:14px">t</span></div><div class="sl">CO\u2082/yr</div></div>
+    <div class="stat"><div class="sv blu">${p.wP.week}<span style="font-size:14px">kg</span></div><div class="sl">Waste/Week</div></div>
+    <div class="stat"><div class="sv ${expired.length>0?'dng':'grn'}">${expired.length}</div><div class="sl">Expired Items</div></div>
+  </div>
+  ${expired.length||expiring.length?`<div class="sec">
+    ${expired.map(f=>`<div class="alert al-d"><span>\ud83d\udea8</span><strong>${fi(f.name)} ${f.name}</strong> expired on ${f.expiry} \u2014 please remove or donate to community fridge.</div>`).join('')}
+    ${expiring.map(f=>`<div class="alert al-w"><span>\u26a0\ufe0f</span><strong>${fi(f.name)} ${f.name}</strong> expires ${f.expiry} \u2014 use soon or donate.</div>`).join('')}
+  </div>`:''}
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dotg"></span>Recent Credit Activity</div>
+    ${p.events.slice(0,5).map(e=>`<div class="ce"><div class="ce-amt ${e.a>=0?'pos':'neg'}">${e.a>=0?'+':''}${e.a}</div><div class="ce-desc">${e.d}</div><div class="ce-date">${e.dt}</div></div>`).join('')}
+    </div>
+    <div class="card"><div class="ctitle"><span class="dot"></span>Food Preferences</div>
+    <div style="margin-bottom:10px">${p.foodPrefs.map(f=>`<span class="tag tg">${f}</span>`).join('')}</div>
+    <div class="ctitle" style="margin-top:14px"><span class="dotb"></span>Favourite Foods</div>
+    <div>${p.favFoods.map(f=>`<span class="tag tb">${fi(f)} ${f}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+function citizenFridge(p){
+  const sorted=[...p.fridge].sort((a,b)=>{const o={expired:0,expiring:1,fresh:2};return o[a.status]-o[b.status];});
+  const items=sorted.map(f=>`<div class="fi ${f.status}"><div class="fi-ico">${fi(f.name)}</div><div class="fi-name">${f.name}</div><div class="fi-exp">Exp: ${f.expiry}</div><div class="fi-qty">${f.qty} ${f.unit}</div><div class="fi-badge ${f.status}">${f.status}</div></div>`).join('');
+  const expired=p.fridge.filter(f=>f.status==='expired');
+  const expiring=p.fridge.filter(f=>f.status==='expiring');
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">My Fridge</div><div class="psub">Smart inventory \u2014 ${p.name}</div></div></div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv grn">${p.fridge.filter(f=>f.status==='fresh').length}</div><div class="sl">Fresh Items</div></div>
+    <div class="stat"><div class="sv wrn">${expiring.length}</div><div class="sl">Expiring Soon</div></div>
+    <div class="stat"><div class="sv dng">${expired.length}</div><div class="sl">Expired</div></div>
+  </div>
+  ${expired.length?`<div class="sec">${expired.map(f=>`<div class="alert al-d"><span>\ud83d\udea8</span><strong>${fi(f.name)} ${f.name}</strong> expired on ${f.expiry}. Please discard or donate to the community fridge.</div>`).join('')}</div>`:''}
+  ${expiring.length?`<div class="sec">${expiring.map(f=>`<div class="alert al-w"><span>\u26a0\ufe0f</span><strong>${fi(f.name)} ${f.name}</strong> expires ${f.expiry}. Use soon or donate to the community fridge.</div>`).join('')}</div>`:''}
+  <div class="card"><div class="ctitle"><span class="dot"></span>All Items</div><div class="fgrid">${items}</div></div>`;
+}
+
+function foodMarket(p){
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Food Market Data</div><div class="psub">LushLife Central Market \u2014 ${p.name}</div></div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">2,841</div><div class="sl">Items Sold Today</div></div>
+    <div class="stat"><div class="sv wrn">48</div><div class="sl">Items Near Expiry</div></div>
+    <div class="stat"><div class="sv blu">94<span style="font-size:14px">%</span></div><div class="sl">Local Sourcing</div></div>
+    <div class="stat"><div class="sv dng">0.5<span style="font-size:14px">%</span></div><div class="sl">Food Waste Rate</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Today's Market Stock</div>
+      <div class="mrow"><span class="mrow-lbl">Fresh Produce</span><span class="mrow-val grn">847 items</span></div>
+      <div class="mrow"><span class="mrow-lbl">Dairy &amp; Alternatives</span><span class="mrow-val grn">312 items</span></div>
+      <div class="mrow"><span class="mrow-lbl">Bakery</span><span class="mrow-val grn">215 items</span></div>
+      <div class="mrow"><span class="mrow-lbl">Grains &amp; Legumes</span><span class="mrow-val grn">498 items</span></div>
+      <div class="mrow"><span class="mrow-lbl">Community Donations</span><span class="mrow-val blu">63 items</span></div>
+    </div>
+    <div class="card"><div class="ctitle"><span class="dotg"></span>Waste Reduction Alerts</div>
+      <div class="alert al-w"><span>\ud83e\udd69</span>48 items expiring by end of day. Suggest 30% discount or community fridge donation.</div>
+      <div class="alert al-s"><span>\ud83c\udf31</span>Composting programme active. 120 kg diverted from landfill this week.</div>
+      <div class="alert al-s"><span>\ud83d\udc9a</span>Local farm delivery arriving at 14:00 \u2014 tomatoes, kale, and seasonal herbs.</div>
+    </div>
+  </div>`;
+}
+
+function ecoData(p){
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Eco Data \u2014 LushLife</div><div class="psub">Environmental monitoring \u2014 ${p.name}</div></div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">12</div><div class="sl">AQI \u2014 Good</div></div>
+    <div class="stat"><div class="sv grn">99.8<span style="font-size:14px">%</span></div><div class="sl">Water Quality</div></div>
+    <div class="stat"><div class="sv blu">7.2</div><div class="sl">Soil pH</div></div>
+    <div class="stat"><div class="sv grn">78<span style="font-size:14px">%</span></div><div class="sl">Green Cover</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Air Quality Monitoring</div>
+      <div class="mrow"><span class="mrow-lbl">PM2.5</span><span class="mrow-val grn">4.2 \u03bcg/m\u00b3</span></div>
+      <div class="mrow"><span class="mrow-lbl">PM10</span><span class="mrow-val grn">12.1 \u03bcg/m\u00b3</span></div>
+      <div class="mrow"><span class="mrow-lbl">NO\u2082</span><span class="mrow-val grn">18 ppb</span></div>
+      <div class="mrow"><span class="mrow-lbl">O\u2083</span><span class="mrow-val wrn">42 ppb</span></div>
+      <div class="mrow"><span class="mrow-lbl">CO</span><span class="mrow-val grn">0.3 ppm</span></div>
+    </div>
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Research Reports</div>
+      <div class="mrow"><span class="mrow-lbl">Q1 Eco Report</span><span class="tag tg">Published</span></div>
+      <div class="mrow"><span class="mrow-lbl">Biodiversity Index</span><span class="tag tb">Updated</span></div>
+      <div class="mrow"><span class="mrow-lbl">Urban Farm Yield</span><span class="tag tg">Record High</span></div>
+      <div class="mrow"><span class="mrow-lbl">River Quality</span><span class="tag tg">Excellent</span></div>
+    </div>
+  </div>`;
+}
+
+function energyGrid(p){
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Energy Grid</div><div class="psub">LushLife solar &amp; storage network \u2014 ${p.name}</div></div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">98<span style="font-size:14px">%</span></div><div class="sl">Renewable Mix</div></div>
+    <div class="stat"><div class="sv blu">4.2<span style="font-size:14px">MW</span></div><div class="sl">Current Output</div></div>
+    <div class="stat"><div class="sv gld">87<span style="font-size:14px">%</span></div><div class="sl">Battery Reserve</div></div>
+    <div class="stat"><div class="sv grn">112<span style="font-size:14px">%</span></div><div class="sl">vs. Target</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Solar Panels Status</div>
+      <div class="mrow"><span class="mrow-lbl">Sector 1\u20133 Arrays</span><span class="mrow-val grn">Active \u2014 1.4 MW</span></div>
+      <div class="mrow"><span class="mrow-lbl">Sector 4\u20136 Arrays</span><span class="mrow-val grn">Active \u2014 1.8 MW</span></div>
+      <div class="mrow"><span class="mrow-lbl">Rooftop Network</span><span class="mrow-val grn">Active \u2014 1.0 MW</span></div>
+      <div class="mrow"><span class="mrow-lbl">Battery Storage</span><span class="mrow-val gld">87% charged</span></div>
+      <div class="mrow"><span class="mrow-lbl">Grid Export Today</span><span class="mrow-val blu">0.8 MW surplus</span></div>
+    </div>
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Energy Advisories</div>
+      <div class="alert al-s"><span>\u2600\ufe0f</span>Record output today. Excess energy being stored and shared with neighbouring grid.</div>
+      <div class="alert al-w"><span>\ud83c\udf27\ufe0f</span>Rain forecast Mon\u2013Tue will reduce solar output by ~40%. Battery reserves sufficient.</div>
+    </div>
+  </div>`;
+}
+
+// CEO VIEWS
+function renderCEO(p,t){
+  const fns={'company-overview':()=>ceoOverview(p),'eco-metrics':()=>ceoEco(p),carbon:()=>{document.getElementById('main').innerHTML=secCarbon(null,p.co2b,`${p.company} \u2014 Annual CO\u2082`);setTimeout(()=>buildCarbonCharts(null,p.co2b),50);},waste:()=>ceoWaste(p),drones:()=>document.getElementById('main').innerHTML=secDrones(),team:()=>ceoTeam(p)};
+  (fns[t]||fns['company-overview'])();
+}
+
+function ceoOverview(p){
+  const s=p.stats;
+  document.getElementById('main').innerHTML=`
+  <div class="pcard"><div class="pav">${p.av}</div><div><div class="pname">${p.name}</div><div class="prole">${p.company}</div><div class="pbio">${p.bio}</div></div><span class="tag tgd" style="margin-left:auto;font-size:14px">${s.rating}</span></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv blu">${s.employees}</div><div class="sl">Employees</div></div>
+    <div class="stat"><div class="sv grn">${s.sus}/100</div><div class="sl">Sus. Score</div></div>
+    <div class="stat"><div class="sv grn">${s.renewable}<span style="font-size:14px">%</span></div><div class="sl">Renewable Energy</div></div>
+    <div class="stat"><div class="sv grn">${s.recycling}<span style="font-size:14px">%</span></div><div class="sl">Recycling Rate</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Company Overview</div>
+      <div style="color:var(--textd);font-size:13px;margin-bottom:14px">${p.desc}</div>
+      <div class="mrow"><span class="mrow-lbl">Annual CO\u2082</span><span class="mrow-val wrn">${s.co2} tonnes</span></div>
+      <div class="mrow"><span class="mrow-lbl">Annual Waste</span><span class="mrow-val wrn">${s.waste.toLocaleString()} kg</span></div>
+      <div class="mrow"><span class="mrow-lbl">Eco Rating</span><span class="mrow-val grn">${s.rating}</span></div>
+    </div>
+    <div class="card"><div class="ctitle"><span class="dotg"></span>Eco Initiatives</div>
+    ${p.initiatives.map(i=>`<div class="mrow"><span class="mrow-lbl" style="font-size:12px">${i.n}</span><span class="tag ${i.s==='active'?'tg':'tw'}">${i.s==='active'?'Active':'In Progress'}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function ceoEco(p){
+  const s=p.stats;
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Eco Metrics \u2014 ${p.company}</div><div class="psub">Environmental performance dashboard</div></div></div>
+  <div class="g4 sec">
+    <div class="stat"><div class="sv grn">${s.renewable}<span style="font-size:14px">%</span></div><div class="sl">Renewable Energy</div><div class="pbar"><div class="pfill" style="width:${s.renewable}%;background:var(--green)"></div></div></div>
+    <div class="stat"><div class="sv grn">${s.recycling}<span style="font-size:14px">%</span></div><div class="sl">Recycling Rate</div><div class="pbar"><div class="pfill" style="width:${s.recycling}%;background:var(--green)"></div></div></div>
+    <div class="stat"><div class="sv wrn">${s.co2}<span style="font-size:14px">t</span></div><div class="sl">CO\u2082 / Year</div></div>
+    <div class="stat"><div class="sv grn">${s.sus}</div><div class="sl">Sus. Score</div></div>
+  </div>
+  <div class="g2 sec">
+    <div class="card"><div class="ctitle"><span class="dot"></span>Eco Initiatives</div>
+    ${p.initiatives.map(i=>`<div class="mrow"><div><div style="font-size:13px;font-weight:600">${i.n}</div><div style="font-size:11px;color:var(--textm)">Since ${i.since}</div></div><span class="tag ${i.s==='active'?'tg':'tw'}">${i.s==='active'?'Active':'In Progress'}</span></div>`).join('')}
+    </div>
+    <div class="card"><div class="ctitle"><span class="dotb"></span>Carbon Footprint Breakdown</div>
+    <div class="chart-sm"><canvas id="ch-eco-co2"></canvas></div>
+    </div>
+  </div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('ch-eco-co2').getContext('2d');
+    const keys=Object.keys(p.co2b);const vals=Object.values(p.co2b);
+    S.charts['eco-co2']=new Chart(ctx,{type:'doughnut',data:{labels:keys,datasets:[{data:vals,backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
+  },50);
+}
+
+function ceoWaste(p){
+  const s=p.stats;
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Waste Management \u2014 ${p.company}</div><div class="psub">Annual waste and recycling data</div></div></div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv wrn">${s.waste.toLocaleString()}<span style="font-size:14px">kg</span></div><div class="sl">Annual Waste</div></div>
+    <div class="stat"><div class="sv grn">${s.recycling}<span style="font-size:14px">%</span></div><div class="sl">Recycling Rate</div></div>
+    <div class="stat"><div class="sv grn">${100-s.recycling}<span style="font-size:14px">%</span></div><div class="sl">Landfill Rate</div></div>
+  </div>
+  <div class="card"><div class="ctitle"><span class="dot"></span>Waste by Category</div>
+  <div class="cmeter"><div class="cm-lbl">Recyclables</div><div class="cm-bar"><div class="cm-fill" style="width:${s.recycling}%;background:var(--green)"></div></div><div class="cm-val grn">${s.recycling}%</div></div>
+  <div class="cmeter"><div class="cm-lbl">Organic</div><div class="cm-bar"><div class="cm-fill" style="width:8%;background:var(--warn)"></div></div><div class="cm-val wrn">8%</div></div>
+  <div class="cmeter"><div class="cm-lbl">Landfill</div><div class="cm-bar"><div class="cm-fill" style="width:${100-s.recycling-8}%;background:var(--danger)"></div></div><div class="cm-val dng">${100-s.recycling-8}%</div></div>
+  </div>`;
+}
+
+function ceoTeam(p){
+  const rows=p.team.map(m=>`<tr><td><strong>${m.name}</strong></td><td><span class="tag tb">${m.role}</span></td><td style="color:${m.sus>=90?'var(--green)':m.sus>=75?'var(--warn)':'var(--danger)'}">${m.sus}/100</td><td class="gld">${m.credits.toLocaleString()}</td></tr>`).join('');
+  document.getElementById('main').innerHTML=`
+  <div class="phdr"><div><div class="ptitle">Team Sustainability \u2014 ${p.company}</div><div class="psub">Employee sustainability performance</div></div></div>
+  <div class="g3 sec">
+    <div class="stat"><div class="sv blu">${p.team.length}</div><div class="sl">Team Members</div></div>
+    <div class="stat"><div class="sv grn">${Math.round(p.team.reduce((a,m)=>a+m.sus,0)/p.team.length)}/100</div><div class="sl">Avg Sus. Score</div></div>
+    <div class="stat"><div class="sv gld">${Math.round(p.team.reduce((a,m)=>a+m.credits,0)/p.team.length).toLocaleString()}</div><div class="sl">Avg Credits</div></div>
+  </div>
+  <div class="card"><div class="ctitle"><span class="dot"></span>Team Leaderboard</div>
+  <table class="dtbl"><thead><tr><th>Name</th><th>Role</th><th>Sus. Score</th><th>Credits</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// CHART BUILDERS
+function buildWasteChart(p){
+  const el=document.getElementById('ch-waste');if(!el)return;
+  const wf=S.wf||'week';
+  const LABELS={day:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],week:['Week 1','Week 2','Week 3','Week 4'],month:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],year:['2020','2021','2022','2023','2024','2025'],lifetime:['2050','2063','2076','2089','2100','2110','2118','2122','2126']};
+  let data;
+  if(p){const b=p.wP;const m=b.month;const seed=[0.9,0.95,1.0,1.05,0.92,0.98,1.02,0.97,0.91,1.01,0.96,1.0];data={day:p.wW,week:[b.week,+(b.week*0.92).toFixed(1),+(b.week*1.08).toFixed(1),+(b.week*0.97).toFixed(1)],month:seed.map(s=>+(m*s).toFixed(1)),year:[+(b.year*1.3).toFixed(0),+(b.year*1.2).toFixed(0),+(b.year*1.1).toFixed(0),+(b.year*1.05).toFixed(0),+(b.year*1.02).toFixed(0),b.year],lifetime:[+(b.lifetime*1.5).toFixed(0),+(b.lifetime*1.4).toFixed(0),+(b.lifetime*1.3).toFixed(0),+(b.lifetime*1.2).toFixed(0),+(b.lifetime*1.1).toFixed(0),+(b.lifetime*1.05).toFixed(0),+(b.lifetime*1.02).toFixed(0),+(b.lifetime*1.01).toFixed(0),b.lifetime]};}
+  else{data={day:[1.2,0.9,1.4,1.1,1.3,1.5,1.2],week:[8.7,7.9,9.2,8.1],month:[72,68,81,74,69,78,83,77,71,75,80,73],year:[380,360,390,340,310,290],lifetime:[450,480,510,520,490,430,380,340,310]};}
+  const ctx=el.getContext('2d');
+  dc('waste');
+  S.charts['waste']=new Chart(ctx,{type:'bar',data:{labels:LABELS[wf],datasets:[{label:'Waste (kg)',data:data[wf],backgroundColor:'rgba(0,223,168,0.6)',borderColor:'#00DFA8',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+}
+
+function buildCarbonCharts(p,co2b){
+  const el=document.getElementById('ch-co2pie');if(!el)return;
+  const keys=Object.keys(co2b);const vals=Object.values(co2b);
+  dc('co2pie');
+  S.charts['co2pie']=new Chart(el.getContext('2d'),{type:'doughnut',data:{labels:keys,datasets:[{data:vals,backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
+}
+
+// MODALS
+function showQR(){
+  const m=document.getElementById('mo-qr');
+  m.style.display='flex';
+  const qc=document.getElementById('qrcode');
+  if(!qc.innerHTML){new QRCode(qc,{text:'https://mrshreyanshgarg.github.io/LushLife/',width:180,height:180,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});}
+}
+function showSOS(){document.getElementById('mo-sos').style.display='flex';}
+let _reqId=null;
+function openReq(id,name,donor,qty,expiry){
+  _reqId=id;
+  document.getElementById('req-text').innerHTML=`You are requesting <strong>${name}</strong> (${qty}, expires ${expiry}) from <strong>${donor}</strong>.`;
+  document.getElementById('mo-req').style.display='flex';
+}
+function confirmReq(){
+  if(_reqId){const item=cfData.find(x=>x.id===_reqId);if(item){item.requested=true;const p=P[S.persona];if(p.fridge){p.fridge.push({id:'r'+_reqId,name:item.name,expiry:item.expiry,qty:item.qty,unit:'pcs',status:'fresh'});}}}
+  document.getElementById('mo-req').style.display='none';
+  alert('Request confirmed! The item will be ready for collection at the community fridge hub.');
+  renderMain();
+}
+
+// INIT
+switchPersona('mayor');
+
+</script>
+</body>
+</html>
